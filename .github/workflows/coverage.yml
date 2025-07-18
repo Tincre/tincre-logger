@@ -21,9 +21,10 @@ jobs:
 
       - name: Install grcov
         run: |
-          # The official Codecov example uses a direct download, which is faster.
-          LATEST_GRCOV_VERSION=$(curl -s "https://api.github.com/repos/mozilla/grcov/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")' | sed 's/v//')
-          curl -L "https://github.com/mozilla/grcov/releases/download/v${LATEST_GRCOV_VERSION}/grcov-x86_64-unknown-linux-gnu.tar.bz2" | tar jxf - -C /usr/local/bin
+          # Using a fixed version is more reliable in CI.
+          # You can update this periodically by checking the grcov releases page.
+          GRCOV_VERSION="0.8.21"
+          curl -L "https://github.com/mozilla/grcov/releases/download/v${GRCOV_VERSION}/grcov-x86_64-unknown-linux-gnu.tar.bz2" | tar jxf - -C /usr/local/bin
 
       - name: Run tests and generate coverage data
         env:
