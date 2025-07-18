@@ -2,6 +2,31 @@
 name = "tincre-logger"
 version = "0.1.0"
 edition = "2021"
+authors = [
+  "Jason R. Stevens, CFA <jason@thinkjrs.dev>",
+  "Tincre <hi@tincre.com>",
+]
+license = "MIT"
+description = "A simple, 'zero-setup' logging library for Rust that works out-of-the-box with a familiar API. Powered by tracing."
+repository = "https://github.com/Tincre/tincre-logger"
+homepage = "https://github.com/Tincre/tincre-logger"
+documentation = "https://docs.rs/tincre-logger"
+readme = "README.md"
+keywords = ["log", "logging", "logger", "tracing", "console"]
+categories = [
+  "command-line-utilities",
+  "development-tools",
+  "development-tools::debugging",
+]
+exclude = [
+  ".github",
+  ".gitignore",
+  "tests/",
+  "examples/",
+  ".vscode/",
+  ".idea/",
+  ".github",
+]
 
 [dependencies]
 tracing = "0.1"
