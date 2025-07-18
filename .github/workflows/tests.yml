@@ -1,0 +1,58 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/*
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [1.78.0, stable, beta, nightly]
+        include:
+          - rust: stable
+            cache-key: stable
+          - rust: beta
+            cache-key: beta
+          - rust: nightly
+            cache-key: nightly
+          - rust: 1.78.0
+            cache-key: msrv
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust ${{ matrix.rust }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Fix Cargo.lock for MSRV
+        if: matrix.rust == '1.78.0'
+        run: |
+          if grep -q 'version = "4"' Cargo.lock; then
+            echo "Cargo.lock is incompatible with Rust 1.78.0. Regenerating..."
+            rm Cargo.lock
+            cargo generate-lockfile
+          fi
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ matrix.cache-key }}-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ matrix.cache-key }}-${{ runner.os }}-
+
+      - name: Run tests
+        run: cargo test --all-features --all-targets
