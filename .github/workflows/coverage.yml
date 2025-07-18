@@ -1,4 +1,4 @@
-name: coverage
+name: Coverage
 
 on:
   push:
@@ -13,20 +13,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install nightly toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Set up Rust nightly
+        uses: dtolnay/rust-toolchain@master
         with:
+          # The -C instrument-coverage flag works best on nightly
           toolchain: nightly
-          override: true
+          # This component is required by grcov
           components: llvm-tools-preview
 
-      - name: Run tests and generate coverage data
-        run: cargo test --verbose
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-coverage-nightly-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-coverage-nightly-${{ runner.os }}-
+
+      - name: Run tests with coverage
         env:
-          # Set the flags required for Rust's source-based coverage
-          CARGO_INCREMENTAL: "0"
-          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          # This is the modern, correct flag for source-based coverage
+          RUSTFLAGS: "-C instrument-coverage"
+          # This specifies the format for the raw coverage data files
+          LLVM_PROFILE_FILE: "tincre-logger-%p-%m.profraw"
+        run: cargo test --all-features --all-targets --verbose
 
       - name: Generate coverage report with grcov
         id: grcov
