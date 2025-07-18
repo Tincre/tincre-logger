@@ -42,14 +42,14 @@ tincre-logger = "0.1.0" # Replace with the latest version
 use tincre_logger::logger;
 
 fn main() {
-    logger::info!("Application starting up.");
-    logger::warn!("Configuration file not found, using defaults.");
+    logger::info("Application starting up.");
+    logger::warn("Configuration file not found, using defaults.");
 
     let user_id = "abc-123";
     // Debug logs are hidden by default.
     logger::debug(&format!("Processing data for user: {}", user_id));
 
-    logger::error!("Failed to connect to the database!");
+    logger::error("Failed to connect to the database!");
 }
 ```
 
