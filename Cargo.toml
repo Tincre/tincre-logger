@@ -11,3 +11,6 @@ tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 assert_cmd = "2.0"
 predicates = "3.1"
+
+[lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(coverage)'] }
