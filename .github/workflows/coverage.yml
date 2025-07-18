@@ -30,7 +30,13 @@ jobs:
           key: cargo-coverage-nightly-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-llvm-cov
-        run: cargo install cargo-llvm-cov --locked
+        run: |
+          if ! command -v cargo-llvm-cov &> /dev/null
+          then
+            cargo install cargo-llvm-cov --locked
+          else
+            echo "cargo-llvm-cov already installed from cache."
+          fi
 
       - name: Generate coverage report
         run: cargo llvm-cov --all-features --lcov --output-path lcov.info
