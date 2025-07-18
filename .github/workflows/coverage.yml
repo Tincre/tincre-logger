@@ -1,4 +1,4 @@
-name: Coverage
+name: coverage
 
 on:
   push:
@@ -9,47 +9,27 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Rust nightly
-        uses: dtolnay/rust-toolchain@master
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
         with:
-          # The -C instrument-coverage flag works best on nightly
-          toolchain: nightly
-          # This component is required by grcov
-          components: llvm-tools-preview
+          toolchain: stable
+          override: true
 
-      - name: Cache cargo dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: cargo-coverage-nightly-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            cargo-coverage-nightly-${{ runner.os }}-
+      - name: Install Tarpaulin
+        run: cargo install cargo-tarpaulin
 
-      - name: Run tests with coverage
-        env:
-          # This is the modern, correct flag for source-based coverage
-          RUSTFLAGS: "-C instrument-coverage"
-          # This specifies the format for the raw coverage data files
-          LLVM_PROFILE_FILE: "tincre-logger-%p-%m.profraw"
-        run: cargo test --all-features --all-targets --verbose
-
-      - name: Generate coverage report with grcov
-        id: grcov
-        uses: actions-rs/grcov@v0.1
+      - name: Run Coverage
+        run: cargo tarpaulin --out Lcov
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: Tincre/tincre-logger
-          # The actions-rs/grcov action outputs the report path
-          files: ${{ steps.grcov.outputs.report }}
+          files: lcov.info
           verbose: true
