@@ -5,7 +5,7 @@ use tracing::{debug, error, info, warn};
 /// This helper function will be called by our public API.
 /// In tests, this function does nothing to avoid conflicts.
 /// In production, it initializes the logger on the first call.
-#[cfg_attr(tarpaulin, tarpaulin::skip)]
+#[cfg(not(tarpaulin_include))]
 #[inline(always)]
 fn ensure_initialized() {
     #[cfg(not(test))]
