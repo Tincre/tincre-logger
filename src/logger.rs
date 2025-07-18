@@ -70,7 +70,6 @@ mod tests {
         buf: Arc<Mutex<Vec<u8>>>,
     }
 
-    #[coverage(off)]
     impl TestWriter {
         fn new() -> Self {
             Self {
@@ -86,6 +85,7 @@ mod tests {
         }
     }
 
+    #[cfg_attr(coverage, coverage(off))]
     impl io::Write for TestWriter {
         fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
             self.buf.lock().unwrap().write(buf)
