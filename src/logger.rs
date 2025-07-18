@@ -70,6 +70,7 @@ mod tests {
         buf: Arc<Mutex<Vec<u8>>>,
     }
 
+    #[coverage(off)]
     impl TestWriter {
         fn new() -> Self {
             Self {
