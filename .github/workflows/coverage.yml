@@ -9,24 +9,42 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Install Rust
+      - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
 
-      - name: Install Tarpaulin
-        run: cargo install cargo-tarpaulin
+      - name: Install grcov
+        run: |
+          # The official Codecov example uses a direct download, which is faster.
+          LATEST_GRCOV_VERSION=$(curl -s "https://api.github.com/repos/mozilla/grcov/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")' | sed 's/v//')
+          curl -L "https://github.com/mozilla/grcov/releases/download/v${LATEST_GRCOV_VERSION}/grcov-x86_64-unknown-linux-gnu.tar.bz2" | tar jxf - -C /usr/local/bin
 
-      - name: Run Coverage
-        run: cargo tarpaulin --out Lcov --exclude-files src/main.rs
+      - name: Run tests and generate coverage data
+        env:
+          # These flags tell the Rust compiler to generate coverage data
+          RUSTFLAGS: "-C instrument-coverage"
+          LLVM_PROFILE_FILE: "tincre-logger-%p-%m.profraw"
+        run: |
+          cargo test --verbose
+
+      - name: Generate lcov report
+        run: |
+          grcov . \
+            --binary-path ./target/debug/ \
+            -s . \
+            -t lcov \
+            --branch \
+            --ignore-not-existing \
+            -o lcov.info
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: Tincre/tincre-logger
