@@ -1,0 +1,13 @@
+[package]
+name = "tincre-logger"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+
+[dev-dependencies]
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+assert_cmd = "2.0"
+predicates = "3.1"
