@@ -13,41 +13,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
+      - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           override: true
-
-      - name: Install grcov
-        run: |
-          # Using a fixed version is more reliable in CI.
-          # You can update this periodically by checking the grcov releases page.
-          GRCOV_VERSION="0.8.21"
-          curl -L "https://github.com/mozilla/grcov/releases/download/v${GRCOV_VERSION}/grcov-x86_64-unknown-linux-gnu.tar.bz2" | tar jxf - -C /usr/local/bin
+          components: llvm-tools-preview
 
       - name: Run tests and generate coverage data
+        run: cargo test --verbose
         env:
-          # These flags tell the Rust compiler to generate coverage data
-          RUSTFLAGS: "-C instrument-coverage"
-          LLVM_PROFILE_FILE: "tincre-logger-%p-%m.profraw"
-        run: |
-          cargo test --verbose
+          # Set the flags required for Rust's source-based coverage
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
 
-      - name: Generate lcov report
-        run: |
-          grcov . \
-            --binary-path ./target/debug/ \
-            -s . \
-            -t lcov \
-            --branch \
-            --ignore-not-existing \
-            -o lcov.info
+      - name: Generate coverage report with grcov
+        id: grcov
+        uses: actions-rs/grcov@v0.1
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: Tincre/tincre-logger
-          files: lcov.info
+          # The actions-rs/grcov action outputs the report path
+          files: ${{ steps.grcov.outputs.report }}
           verbose: true
