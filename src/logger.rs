@@ -12,11 +12,11 @@
 //! use tincre_logger::logger;
 //!
 //! fn main() {
-//!     logger::info!("Server has started.");
-//!     logger::warn!("Low disk space detected.");
-//!     logger::error!("Failed to connect to database!");
+//!     logger::info("Server has started.");
+//!     logger::warn("Low disk space detected.");
+//!     logger::error("Failed to connect to database!");
 //!     // To see debug messages, run with `RUST_LOG=debug`
-//!     logger::debug!("User 'admin' logged in.");
+//!     logger::debug("User 'admin' logged in.");
 //! }
 //! ```
 
@@ -171,7 +171,6 @@ mod tests {
             // Explicitly set the filter to capture all levels down to TRACE
             .with(LevelFilter::TRACE);
 
-        // Run the test code with our temporary subscriber
         tracing::subscriber::with_default(subscriber, || {
             log("hello world");
             info("this is info");
