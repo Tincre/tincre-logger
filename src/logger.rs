@@ -1,5 +1,3 @@
-// src/logger.rs
-
 //! A simple, "zero-setup" logger that works out-of-the-box.
 //!
 //! This module provides a set of functions for logging messages at different
@@ -18,8 +16,9 @@
 //!     // To see debug messages, run with `RUST_LOG=debug`
 //!     logger::debug("User 'admin' logged in.");
 //! }
-//! ```
 
+use chrono::Utc;
+use serde_json::Value;
 use tracing::{debug, error, info, warn};
 
 #[cfg_attr(coverage, coverage(off))]
@@ -42,6 +41,7 @@ fn ensure_initialized() {
         });
     }
 }
+
 // --- Public API Functions ---
 
 /// Logs a message at the `INFO` level. This is an alias for `info()`.
@@ -118,9 +118,36 @@ pub fn debug(message: &str) {
     debug!(message);
 }
 
+// --- New *_with versions ---
+
+pub fn info_with(message: &str, data: impl Into<Value>) {
+    ensure_initialized();
+    let timestamp = Utc::now().to_rfc3339();
+    info!(%timestamp, message = %message, data = ?data.into());
+}
+
+pub fn warn_with(message: &str, data: impl Into<Value>) {
+    ensure_initialized();
+    let timestamp = Utc::now().to_rfc3339();
+    warn!(%timestamp, message = %message, data = ?data.into());
+}
+
+pub fn error_with(message: &str, data: impl Into<Value>) {
+    ensure_initialized();
+    let timestamp = Utc::now().to_rfc3339();
+    error!(%timestamp, message = %message, data = ?data.into());
+}
+
+pub fn debug_with(message: &str, data: impl Into<Value>) {
+    ensure_initialized();
+    let timestamp = Utc::now().to_rfc3339();
+    debug!(%timestamp, message = %message, data = ?data.into());
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
     use std::io;
     use std::sync::{Arc, Mutex};
     use tracing_subscriber::{filter::LevelFilter, fmt, layer::SubscriberExt, registry};
@@ -186,5 +213,35 @@ mod tests {
         assert!(output.contains("WARN") && output.contains("a warning message"));
         assert!(output.contains("ERROR") && output.contains("an error message"));
         assert!(output.contains("DEBUG") && output.contains("a debug message"));
+    }
+
+    #[test]
+    fn it_logs_all_levels_with_data() {
+        let writer = TestWriter::new();
+        let writer_clone = writer.clone();
+
+        let subscriber = registry()
+            .with(
+                fmt::layer()
+                    .with_writer(move || writer_clone.clone())
+                    .with_ansi(false),
+            )
+            .with(LevelFilter::TRACE);
+
+        tracing::subscriber::with_default(subscriber, || {
+            info_with("structured info", json!({ "k": "v" }));
+            warn_with("structured warn", json!({ "warn_level": 2 }));
+            error_with("structured error", json!({ "err": "boom" }));
+            debug_with("structured debug", json!({ "flag": true }));
+        });
+
+        let output = writer.get_contents();
+
+        assert!(output.contains("INFO") && output.contains("structured info"));
+        assert!(output.contains("WARN") && output.contains("structured warn"));
+        assert!(output.contains("ERROR") && output.contains("structured error"));
+        assert!(output.contains("DEBUG") && output.contains("structured debug"));
+        assert!(output.contains("timestamp")); // check for injected field
+        assert!(output.contains("k") && output.contains("v"));
     }
 }
