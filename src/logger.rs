@@ -21,6 +21,7 @@ use chrono::Utc;
 use serde_json::Value;
 use tracing::{debug, error, info, warn};
 
+// --- Setup ---
 #[cfg_attr(coverage, coverage(off))]
 #[inline(always)]
 fn ensure_initialized() {
@@ -199,6 +200,7 @@ pub fn debug_with(message: &str, data: impl Into<Value>) {
     debug!(%timestamp, message = %message, data = ?data.into());
 }
 
+// --- Unit Tests ---
 #[cfg(test)]
 mod tests {
     use super::*;
