@@ -118,26 +118,81 @@ pub fn debug(message: &str) {
     debug!(message);
 }
 
-// --- New *_with versions ---
-
+/// Logs a message at the `INFO` level with additional structured metadata.
+///
+/// This function accepts a message and a second parameter representing structured
+/// data. The data is serialized and logged as part of the event. A UTC timestamp is
+/// automatically injected.
+///
+/// # Example
+///
+/// ```
+/// use tincre_logger::logger;
+/// use serde_json::json;
+///
+/// logger::info_with("User signed in", json!({ "user_id": 42, "method": "oauth" }));
+/// ```
 pub fn info_with(message: &str, data: impl Into<Value>) {
     ensure_initialized();
     let timestamp = Utc::now().to_rfc3339();
     info!(%timestamp, message = %message, data = ?data.into());
 }
 
+/// Logs a message at the `WARN` level with additional structured metadata.
+///
+/// This function is useful for highlighting warnings while attaching extra
+/// information, such as rate limit states or configuration drift. A UTC timestamp
+/// is automatically injected.
+///
+/// # Example
+///
+/// ```
+/// use tincre_logger::logger;
+/// use serde_json::json;
+///
+/// logger::warn_with("Cache miss", json!({ "key": "homepage", "attempts": 2 }));
+/// ```
 pub fn warn_with(message: &str, data: impl Into<Value>) {
     ensure_initialized();
     let timestamp = Utc::now().to_rfc3339();
     warn!(%timestamp, message = %message, data = ?data.into());
 }
 
+/// Logs a message at the `ERROR` level with additional structured metadata.
+///
+/// This function is intended for errors that should be captured in monitoring
+/// pipelines with relevant context, such as error codes or service names.
+/// A UTC timestamp is automatically injected.
+///
+/// # Example
+///
+/// ```
+/// use tincre_logger::logger;
+/// use serde_json::json;
+///
+/// logger::error_with("Database write failed", json!({ "table": "users", "code": 500 }));
+/// ```
 pub fn error_with(message: &str, data: impl Into<Value>) {
     ensure_initialized();
     let timestamp = Utc::now().to_rfc3339();
     error!(%timestamp, message = %message, data = ?data.into());
 }
 
+/// Logs a message at the `DEBUG` level with additional structured metadata.
+///
+/// By default, debug messages are hidden. They can be enabled by setting
+/// the `RUST_LOG` environment variable (e.g., `RUST_LOG=debug`). A UTC timestamp
+/// is automatically injected.
+///
+/// # Example
+///
+/// ```
+/// use tincre_logger::logger;
+/// use serde_json::json;
+///
+/// // To see this message, run your application with `RUST_LOG=debug`
+/// logger::debug_with("Loaded config", json!({ "env": "dev", "debug_mode": true }));
+/// ```
 pub fn debug_with(message: &str, data: impl Into<Value>) {
     ensure_initialized();
     let timestamp = Utc::now().to_rfc3339();
