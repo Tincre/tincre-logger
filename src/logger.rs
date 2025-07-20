@@ -297,6 +297,6 @@ mod tests {
         assert!(output.contains("ERROR") && output.contains("structured error"));
         assert!(output.contains("DEBUG") && output.contains("structured debug"));
         assert!(output.contains("timestamp")); // check for injected field
-        assert!(output.contains("k") && output.contains("v"));
+        assert!(output.contains('k') && output.contains('v'));
     }
 }
