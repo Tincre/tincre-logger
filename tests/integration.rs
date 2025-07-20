@@ -3,7 +3,6 @@ use predicates::prelude::*;
 
 #[test]
 fn test_example_output_default_level() {
-    // This is the canonical way to run an example and test its output.
     let mut cmd = Command::new("cargo");
     cmd.args(["run", "--example", "simple", "--quiet"]);
 
@@ -11,6 +10,10 @@ fn test_example_output_default_level() {
         .stdout(predicate::str::contains("hello from the example"))
         .stdout(predicate::str::contains("this is a warning"))
         .stdout(predicate::str::contains("this is an error"))
+        .stdout(predicate::str::contains("user signed in"))
+        .stdout(predicate::str::contains("cache miss"))
+        .stdout(predicate::str::contains("db failure"))
+        .stdout(predicate::str::contains("loaded config").not()) // debug only
         .stdout(predicate::str::contains("this is a debug message").not())
         .success();
 }
@@ -23,6 +26,7 @@ fn test_example_output_debug_level() {
 
     cmd.assert()
         .stdout(predicate::str::contains("this is a debug message"))
+        .stdout(predicate::str::contains("loaded config"))
         .success();
 }
 
